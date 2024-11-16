@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { loginUsuario } from '../api'; // Asegúrate de que esta función esté correctamente implementada
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
 
-  const handleLogin = () => {
-    // Lógica para iniciar sesión
-    console.log('Iniciar sesión con:', { email, password });
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Por favor, completa todos los campos.');
+      return;
+    }
+    try {
+      const { data } = await loginUsuario({ email, password });
+      Alert.alert('Inicio de Sesión', `Bienvenido ${data.nombre}`);
+      // Lógica para redirigir después del inicio de sesión exitoso
+      navigation.navigate('Home'); // Ajusta la ruta según tu configuración
+    } catch (error) {
+      Alert.alert('Error', 'Credenciales incorrectas.');
+    }
   };
 
   return (
@@ -43,7 +54,7 @@ const LoginScreen = () => {
 
       <Text style={styles.orText}>o</Text>
 
-      {/* Botón para registrarse que navega a SignupScreen */}
+      {/* Botón para registrarse */}
       <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
         <Text style={styles.registerText}>Registrarse</Text>
       </TouchableOpacity>
@@ -68,7 +79,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 30,
-    textAlign:'center',
+    textAlign: 'center',
   },
   card: {
     width: '100%',

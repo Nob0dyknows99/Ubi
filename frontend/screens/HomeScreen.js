@@ -1,20 +1,29 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
-import MapScreen from '../components/MapScreen';
-import { Ionicons } from '@expo/vector-icons'; // Importar Ionicons para el ícono
+import { View, TextInput, StyleSheet, FlatList, Text } from 'react-native';
+import MapScreen from '../components/MapScreen'; // Asegúrate de que MapScreen está configurado correctamente
+import { Ionicons } from '@expo/vector-icons'; // Para los íconos
+import { fetchProductos } from '../api'; // Asegúrate de que fetchProductos está correctamente definido
 
 const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState(''); // Estado para la barra de búsqueda
+  const [searchResults, setSearchResults] = useState([]); // Estado para los resultados de búsqueda
 
-  const handleSearch = (text) => {
+  const handleSearch = async (text) => {
     setSearchQuery(text); // Actualizar el estado de la búsqueda
-    // Aquí podrías manejar la lógica de búsqueda
-    console.log('Buscando:', text);
+    try {
+      const { data } = await fetchProductos();
+      const filteredResults = data.filter((product) =>
+        product.nombre_producto.toLowerCase().includes(text.toLowerCase())
+      );
+      setSearchResults(filteredResults);
+    } catch (error) {
+      console.error('Error al realizar la búsqueda:', error);
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Contenedor de la barra de búsqueda con el ícono */}
+      {/* Contenedor de la barra de búsqueda */}
       <View style={styles.searchBarContainer}>
         <Ionicons name="search" size={20} color="gray" style={styles.searchIcon} />
         <TextInput
@@ -22,14 +31,26 @@ const HomeScreen = () => {
           placeholder="¿Qué necesitas?"
           value={searchQuery}
           onChangeText={handleSearch}
-          placeholderTextColor="gray" // Color del placeholder
+          placeholderTextColor="gray"
         />
       </View>
-      
+
       {/* Mapa */}
       <View style={styles.mapContainer}>
         <MapScreen />
       </View>
+
+      {/* Resultados de búsqueda */}
+      <FlatList
+        data={searchResults}
+        keyExtractor={(item) => item._id}
+        renderItem={({ item }) => (
+          <View style={styles.resultItem}>
+            <Text style={styles.resultText}>{item.nombre_producto}</Text>
+          </View>
+        )}
+        style={styles.resultsList}
+      />
     </View>
   );
 };
@@ -39,35 +60,48 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingTop: 10, // Añadimos un pequeño relleno superior para separar del borde superior
+    paddingTop: 10,
   },
   searchBarContainer: {
-    flexDirection: 'row', // Colocar el ícono y el TextInput en una fila
-    alignItems: 'center', // Alinear los elementos verticalmente
-    width: '90%', // Ancho del contenedor de la barra de búsqueda
-    height: 40, // Altura de la barra de búsqueda
-    borderColor: 'gray', // Color del borde
-    borderWidth: 1, // Grosor del borde
-    borderRadius: 20, // Bordes redondeados
-    backgroundColor: '#fff', // Fondo blanco
-    paddingHorizontal: 10, // Espacio dentro del contenedor
-    marginBottom: 10, // Separación entre la barra de búsqueda y el mapa
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '90%',
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
+    marginBottom: 10,
   },
   searchIcon: {
-    marginRight: 10, // Espacio entre el ícono y el campo de texto
+    marginRight: 10,
   },
   searchBar: {
-    flex: 1, // El TextInput ocupa el espacio restante
+    flex: 1,
     height: '100%',
-    textAlign: 'center', // Alinear el texto al centro
-    right: 15,
+    textAlign: 'center',
     color: 'black',
   },
   mapContainer: {
-    flex: 0.65, // El mapa ocupa el espacio restante
+    flex: 0.65,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 10,
+  },
+  resultsList: {
+    flex: 0.35,
+    width: '100%',
+  },
+  resultItem: {
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  resultText: {
+    fontSize: 18,
   },
 });
 

@@ -1,14 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import BackButton from '../components/BackButton'; // Asegúrate de ajustar la ruta según tu estructura de carpetas
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import BackButton from '../components/BackButton'; // Asegúrate de ajustar la ruta correctamente
+import { createUsuario } from '../api'; // Asegúrate de que esta función esté implementada correctamente
 
 const SignupPersonaScreen = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formData, setFormData] = useState({
+    nombre: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
 
-  const handleRegister = () => {
-    console.log('Registro de Persona', { email, password, confirmPassword });
+  const handleRegister = async () => {
+    const { nombre, email, password, confirmPassword } = formData;
+
+    if (!nombre || !email || !password || !confirmPassword) {
+      Alert.alert('Error', 'Todos los campos son obligatorios.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Las contraseñas no coinciden.');
+      return;
+    }
+
+    try {
+      await createUsuario({ nombre, email, password });
+      Alert.alert('Registro', 'Usuario registrado con éxito.');
+    } catch (error) {
+      Alert.alert('Error', 'Error al registrar usuario.');
+    }
   };
 
   return (
@@ -16,30 +37,38 @@ const SignupPersonaScreen = () => {
       <View style={styles.header}>
         <BackButton />
       </View>
+
       <View style={styles.content}>
         <Text style={styles.title}>Registrarse</Text>
         <View style={styles.form}>
           <TextInput
             style={styles.input}
+            placeholder="Nombre"
+            value={formData.nombre}
+            onChangeText={(text) => setFormData({ ...formData, nombre: text })}
+            placeholderTextColor="#aaa"
+          />
+          <TextInput
+            style={styles.input}
             placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
+            value={formData.email}
+            onChangeText={(text) => setFormData({ ...formData, email: text })}
             placeholderTextColor="#aaa"
           />
           <TextInput
             style={styles.input}
             placeholder="Contraseña"
             secureTextEntry
-            value={password}
-            onChangeText={setPassword}
+            value={formData.password}
+            onChangeText={(text) => setFormData({ ...formData, password: text })}
             placeholderTextColor="#aaa"
           />
           <TextInput
             style={styles.input}
             placeholder="Repita contraseña"
             secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            value={formData.confirmPassword}
+            onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
             placeholderTextColor="#aaa"
           />
           <TouchableOpacity onPress={handleRegister} style={styles.registerButton}>
